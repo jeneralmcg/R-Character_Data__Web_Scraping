@@ -1,0 +1,567 @@
+---
+title: 'Lab #4'
+author: "Jen McGregor"
+date: "10/14/2021"
+output:
+  prettydoc::html_pretty:
+  theme: hpstr
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(rvest)
+library(tidyverse)
+library(readr)
+library(patchwork)
+```
+
+# Coffee Lovers Unite!
+
+# Scrape the Location Counts
+
+**1. Use the rvest package to scrape the data (from menuism.com like the link above) on state names and corresponding number of store locations, for the following chains:**
+
+* Starbucks
+
+* Dunkin’ Donuts
+
+* Peet’s Coffee & Tea
+
+* Tim Horton’s
+
+* Panera Bread
+
+* Caribou Coffee
+
+* Au Bon Pain
+
+* The Coffee Bean & Tea Leaf
+
+* McDonald’s
+
+```{r}
+# Starbucks
+StarbucksURL <- "https://www.menuism.com/restaurant-locations/starbucks-coffee-39564"
+StarbucksLink <- read_html(StarbucksURL)
+
+StarbucksHTML <- html_nodes(StarbucksLink,css= ".list-unstyled-links a")
+StarbucksText <- html_text(StarbucksHTML)
+
+
+StarbucksDF <- data.frame(
+  State = StarbucksText[seq(from=1,to=58,by=1)]
+  )
+```
+
+```{r}
+# Dunkin’ Donuts
+DunkinURL <- "https://www.menuism.com/restaurant-locations/dunkin-donuts-181624"
+DunkinLink <- read_html(DunkinURL)
+
+DunkinHTML <- html_nodes(DunkinLink,css= ".list-unstyled-links a")
+DunkinText <- html_text(DunkinHTML)
+
+DunkinDF <- data.frame(
+  State = DunkinText[seq(from=1,to=47,by=1)]
+  )
+```
+
+```{r}
+# Peet's Coffee & Tea
+PeetsURL <- "https://www.menuism.com/restaurant-locations/peets-coffee-tea-84051"
+PeetsLink <- read_html(PeetsURL)
+
+PeetsHTML <- html_nodes(PeetsLink,css= ".list-unstyled-links a")
+PeetsText <- html_text(PeetsHTML)
+
+PeetsDF <- data.frame(
+  State = PeetsText[seq(from=1,to=10,by=1)]
+  )
+```
+
+```{r}
+# Tim Horton’s
+TimHortonsURL <- "https://www.menuism.com/restaurant-locations/tim-hortons-190025"
+TimHortonsLink <- read_html(TimHortonsURL)
+
+TimHortonsHTML <- html_nodes(TimHortonsLink,css= ".list-unstyled-links a")
+TimHortonsText <- html_text(TimHortonsHTML)
+
+TimHortonsDF <- data.frame(
+  State = TimHortonsText[seq(from=1,to=23,by=1)]
+  )
+```
+
+```{r}
+# Panera Bread
+PaneraURL <- "https://www.menuism.com/restaurant-locations/panera-bread-4258"
+PaneraLink <- read_html(PaneraURL)
+
+PaneraHTML <- html_nodes(PaneraLink,css= ".list-unstyled-links a")
+PaneraText <- html_text(PaneraHTML)
+
+PaneraDF <- data.frame(
+  State = PaneraText[seq(from=1,to=47,by=1)]
+  )
+```
+
+```{r}
+# Caribou Coffee
+CaribouURL <- "https://www.menuism.com/restaurant-locations/caribou-coffee-164861"
+CaribouLink <- read_html(CaribouURL)
+
+CaribouHTML <- html_nodes(CaribouLink,css= ".list-unstyled-links a")
+CaribouText <- html_text(CaribouHTML)
+
+CaribouDF <- data.frame(
+  State = CaribouText[seq(from=1,to=20,by=1)]
+  )
+```
+
+```{r}
+# Au Bon Pain
+AuBonPainURL <- "https://www.menuism.com/restaurant-locations/au-bon-pain-69342"
+AuBonPainLink <- read_html(AuBonPainURL)
+
+AuBonPainHTML <- html_nodes(AuBonPainLink,css= ".list-unstyled-links a")
+AuBonPainText <- html_text(AuBonPainHTML)
+
+AuBonPainDF <- data.frame(
+  State = AuBonPainText[seq(from=1,to=22,by=1)]
+  )
+```
+
+```{r}
+# The Coffee Bean & Tea Leaf
+CoffeeBTLeafURL <- "https://www.menuism.com/restaurant-locations/the-coffee-bean-tea-leaf-165988"
+CoffeeBTLeafLink <- read_html(CoffeeBTLeafURL)
+
+CoffeeBTLeafHTML <- html_nodes(CoffeeBTLeafLink,css= ".list-unstyled-links a")
+CoffeeBTLeafText <- html_text(CoffeeBTLeafHTML)
+
+CoffeeBTLeafDF <- data.frame(
+  State = CoffeeBTLeafText[seq(from=1,to=8,by=1)]
+  )
+```
+
+```{r}
+# McDonald’s
+McDonaldsURL <- "https://www.menuism.com/restaurant-locations/mcdonalds-21019"
+McDonaldsLink <- read_html(McDonaldsURL)
+
+McDonaldsHTML <- html_nodes(McDonaldsLink,css= ".list-unstyled-links a")
+McDonaldsText <- html_text(McDonaldsHTML)
+
+McDonaldsDF <- data.frame(
+  State = McDonaldsText[seq(from=1,to=92,by=1)]
+  )
+```
+
+
+**2. Write a function stateabb() that takes a state name (assume it’s spelled correctly) and converts it to its state abbreviation. This can be a very simple function.**
+
+```{r}
+# Write the Function
+stateabb <- function(x){
+  state.abb[match(x,state.name)] 
+}
+```
+
+```{r,include=FALSE}
+StatesTest <- read_csv("csvData.csv")
+StatesTest[-2]
+```
+
+```{r}
+# Test the function
+stateabb(StatesTest$State)
+```
+
+**3. Parse, merge and tidy your data so that you have a row for each state and two columns: state abbrevation, location count.**
+
+```{r}
+# Starbucks
+StarbucksDF$State <- gsub("\\(","",StarbucksDF$State)
+StarbucksDF$State <- gsub("\\)","",StarbucksDF$State)
+StarbucksDF$Starbucks_LocationCount <- parse_number(StarbucksDF$State)
+StarbucksDF$State <- gsub("Starbucks Coffee locations [0-9]+","",StarbucksDF$State)
+
+StarbucksDF$State <- trimws(StarbucksDF$State, which="right")
+StarbucksDF$State_Abbreviation <- stateabb(StarbucksDF$State)
+
+# Remove Locations Outside U.S.
+StarbucksDF <- StarbucksDF[complete.cases(StarbucksDF),]
+```
+
+```{r}
+# Dunkin’ Donuts
+DunkinDF$State <- gsub("\\(","",DunkinDF$State)
+DunkinDF$State <- gsub("\\)","",DunkinDF$State)
+DunkinDF$Dunkin_LocationCount <- parse_number(DunkinDF$State)
+DunkinDF$State <- gsub("Dunkin' Donuts locations [0-9]+","",DunkinDF$State)
+
+DunkinDF$State <- trimws(DunkinDF$State, which="right")
+DunkinDF$State_Abbreviation <- stateabb(DunkinDF$State)
+
+# Remove Locations Outside U.S.
+DunkinDF <- DunkinDF[complete.cases(DunkinDF),]
+```
+
+```{r}
+# Peet's Coffee & Tea
+PeetsDF$State <- gsub("\\(","",PeetsDF$State)
+PeetsDF$State <- gsub("\\)","",PeetsDF$State)
+PeetsDF$Peets_LocationCount <- parse_number(PeetsDF$State)
+PeetsDF$State <- gsub("Peet's Coffee & Tea locations [0-9]+","",PeetsDF$State)
+
+PeetsDF$State <- trimws(PeetsDF$State, which="right")
+
+#Fix Massachusetts Value
+PeetsDF$State <- gsub("MA","Massachusetts",PeetsDF$State)
+
+PeetsDF$State_Abbreviation <- stateabb(PeetsDF$State)
+```
+
+```{r}
+# Tim Horton’s
+TimHortonsDF$State <- gsub("\\(","",TimHortonsDF$State)
+TimHortonsDF$State <- gsub("\\)","",TimHortonsDF$State)
+TimHortonsDF$TimHortons_LocationCount <- parse_number(TimHortonsDF$State)
+TimHortonsDF$State <- gsub("Tim Hortons locations [0-9]+","",TimHortonsDF$State)
+
+TimHortonsDF$State <- trimws(TimHortonsDF$State, which="right")
+TimHortonsDF$State_Abbreviation <- stateabb(TimHortonsDF$State)
+
+# Remove Locations Outside U.S.
+TimHortonsDF <- TimHortonsDF[complete.cases(TimHortonsDF),]
+
+```
+
+```{r}
+# Panera Bread
+PaneraDF$State <- gsub("\\(","",PaneraDF$State)
+PaneraDF$State <- gsub("\\)","",PaneraDF$State)
+PaneraDF$Panera_LocationCount <- parse_number(PaneraDF$State)
+PaneraDF$State <- gsub("Panera Bread locations [0-9]+","",PaneraDF$State)
+
+PaneraDF$State <- trimws(PaneraDF$State, which="right")
+PaneraDF$State_Abbreviation <- stateabb(PaneraDF$State)
+
+# Remove Locations Outside U.S.
+PaneraDF <- PaneraDF[complete.cases(PaneraDF),]
+```
+
+```{r}
+# Caribou Coffee
+CaribouDF$State <- gsub("\\(","",CaribouDF$State)
+CaribouDF$State <- gsub("\\)","",CaribouDF$State)
+CaribouDF$Caribou_LocationCount <- parse_number(CaribouDF$State)
+CaribouDF$State <- gsub("Caribou Coffee locations [0-9]+","",CaribouDF$State)
+
+CaribouDF$State <- trimws(CaribouDF$State, which="right")
+CaribouDF$State_Abbreviation <- stateabb(CaribouDF$State)
+
+# Remove Locations Outside U.S.
+CaribouDF <- CaribouDF[complete.cases(CaribouDF),]
+```
+
+```{r}
+# Au Bon Pain
+AuBonPainDF$State <- gsub("\\(","",AuBonPainDF$State)
+AuBonPainDF$State <- gsub("\\)","",AuBonPainDF$State)
+AuBonPainDF$AuBonPain_LocationCount <- parse_number(AuBonPainDF$State)
+AuBonPainDF$State <- gsub("Au Bon Pain locations [0-9]+","",AuBonPainDF$State)
+
+AuBonPainDF$State <- trimws(AuBonPainDF$State, which="right")
+AuBonPainDF$State_Abbreviation <- stateabb(AuBonPainDF$State)
+
+# Remove Locations Outside U.S.
+AuBonPainDF <- AuBonPainDF[complete.cases(AuBonPainDF),]
+```
+
+```{r}
+# The Coffee Bean & Tea Leaf 
+CoffeeBTLeafDF$State <- gsub("\\(","",CoffeeBTLeafDF$State)
+CoffeeBTLeafDF$State <- gsub("\\)","",CoffeeBTLeafDF$State)
+CoffeeBTLeafDF$CoffeeBTLeaf_LocationCount <- parse_number(CoffeeBTLeafDF$State)
+CoffeeBTLeafDF$State <- gsub("The Coffee Bean & Tea Leaf locations [0-9]+","",CoffeeBTLeafDF$State)
+
+CoffeeBTLeafDF$State <- trimws(CoffeeBTLeafDF$State, which="right")
+CoffeeBTLeafDF$State_Abbreviation <- stateabb(CoffeeBTLeafDF$State)
+```
+
+```{r, warning=FALSE}
+# McDonald’s
+McDonaldsDF$State <- gsub("\\(","",McDonaldsDF$State)
+McDonaldsDF$State <- gsub("\\)","",McDonaldsDF$State)
+McDonaldsDF$McDonalds_LocationCount <- parse_number(McDonaldsDF$State)
+McDonaldsDF$State <- gsub("McDonald's locations [0-9]+","",McDonaldsDF$State)
+
+McDonaldsDF$State <- trimws(McDonaldsDF$State, which="right")
+McDonaldsDF$State_Abbreviation <- stateabb(McDonaldsDF$State)
+
+# Remove Locations Outside U.S.
+McDonaldsDF <- McDonaldsDF[complete.cases(McDonaldsDF),]
+```
+
+```{r}
+#Combine Store Locations into 1 DF
+NewDF <- StarbucksDF %>%
+  left_join(AuBonPainDF,by="State") %>%
+  left_join(CaribouDF,by="State") %>%
+  left_join(CoffeeBTLeafDF,by="State") %>%
+  left_join(DunkinDF,by="State") %>%
+  left_join(TimHortonsDF,by="State") %>%
+  left_join(PaneraDF,by="State") %>%
+  left_join(PeetsDF,by="State") %>%
+  left_join(McDonaldsDF,by="State") 
+
+NewDF <- NewDF[,-c(3,5,7,9,11,13,15,17)]
+
+NewDF <- NewDF %>%
+  relocate(State_Abbreviation, .after=State)
+
+head(NewDF)
+```
+
+# Supplemental Data
+
+**4. Scrape the state names and populations from this [wikipedia page](https://simple.wikipedia.org/wiki/List_of_U.S._states_by_population). Convert the state names to abbreviations and merge these data with your coffee dataset.**
+```{r}
+WikiURL <- "https://simple.wikipedia.org/wiki/List_of_U.S._states_by_population"
+WikuLink <- read_html(WikiURL)
+
+WikiHTML <- html_nodes(WikuLink,css= "td:nth-child(4),tr+ td , .headerSort:nth-child(4),td:nth-child(3),.headerSort:nth-child(3)")
+WikiText <- html_text(WikiHTML)
+
+WikiDF <- data.frame(
+  State = WikiText[seq(from=1,to=104,by=2)],
+  Population = WikiText[seq(from=2,to=104,by=2)]
+  )
+
+WikiDF$Population <- gsub(",","",WikiDF$Population)
+WikiDF$State<- str_trim(WikiDF$State, side="both")
+WikiDF$State_Abbreviation <- stateabb(WikiDF$State)
+
+# Remove Locations Outside U.S.
+WikiDF <- WikiDF[complete.cases(WikiDF),]
+WikiDF <- WikiDF[-1]
+
+# Merge Data
+NewDF <- NewDF %>%
+  left_join(WikiDF,by="State_Abbreviation")
+
+NewDF <- NewDF[-1]
+
+head(NewDF)
+```
+
+**5. Find the revenue, stock price, or your financial metric of choice for each of the companies listed above (if you can find a website to scrape these from that’s great!…but it’s okay if you manually enter these into R). Merge these values into your big dataset. Note: these values may be repeated for each state.**
+
+Note: Amounts Entered represent Yearly Revenue in Billions.
+```{r}
+NewDF$AuBonPain_Revenue <- 0.30 
+NewDF$Caribou_Revenue <- 0.50 
+NewDF$CoffeeBTLeaf_Revenue <- .25 
+NewDF$Dunkin_Revenue <- 1.37 
+NewDF$McDonalds_Revenue <- 19.21 
+NewDF$Panera_Revenue <- 2.80 
+NewDF$Peets_Revenue <- .98 
+NewDF$Starbucks_Revenue <- 26.50 
+```
+
+**6. Create a region variable in your dataset according to the scheme on [this wikipedia page](https://en.wikipedia.org/wiki/List_of_regions_of_the_United_States): Northeast, Midwest, South, West. You do not need to scrape this information.**
+
+```{r}
+NewDF$Region <- ifelse(NewDF$State_Abbreviation %in% c("CT","ME","MA","NH","RI","VT","NJ","NY","PA"), "Northeast",
+                       ifelse(NewDF$State_Abbreviation %in% c("IL","IN","MI","OH","WI","IA","KS","MN","MO","NE","ND","SD"),"Midwest",
+                              ifelse(NewDF$State_Abbreviation %in% c("DE","FL","GA","MD","NC","SC","VA","WV","AL","KY","MS","TN","AR","LA","OK","TX"),"South",
+                                     "West")))
+```
+
+# Analyze
+
+**7.Assess and comment on the prevalence of each chain. Some questions to consider (you don’t need to answer all of these and you may come up with your own):**
+
+  * **Does the distribution of each chain’s stores match population distribution, by both state/region?**
+
+In looking at plots of each chain against their respective location counts (shown below), Starbucks locations seem to match the population distribution the best, both by state and by region. Some of the other chains, such as The Coffee Bean & Tea Leaf, do not carry enough locations to make an accurate enough determination. 
+
+```{r,warning=FALSE}
+# Overall Population 
+
+Population <- NewDF %>%
+  select(State_Abbreviation,Population,Region)
+
+Population$Population <- as.numeric(Population$Population)
+
+PopulationPlot <- ggplot(Population, aes(x=State_Abbreviation,y=Population)) +
+  geom_col() +
+  xlab("State Abbreviation") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5))
+PopulationPlot
+
+# Starbucks Plot
+StarbucksPlot <- ggplot(NewDF, aes(x=State_Abbreviation,y=Starbucks_LocationCount)) +
+  geom_col(fill=I("green")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  xlab("State Abbreviation") +
+  ylab("Count of Starbucks Locations")
+StarbucksPlot
+
+# Dunkin’ Donuts Plot
+DunkinPlot <- ggplot(NewDF, aes(x=State_Abbreviation,y=Dunkin_LocationCount)) +
+  geom_col(fill=I("orange")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  xlab("State Abbreviation") +
+  ylab("Count of Dunkin Locations")
+DunkinPlot
+
+# Tim Horton's Plot
+TimHortonsPlot <- ggplot(NewDF, aes(x=State_Abbreviation,y=TimHortons_LocationCount)) +
+  geom_col(fill=I("red")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  xlab("State Abbreviation") +
+  ylab("Count of Tim Hortons Locations")
+TimHortonsPlot
+
+# Peets Coffee Plot
+PeetsPlot <- ggplot(NewDF, aes(x=State_Abbreviation,y=Peets_LocationCount)) +
+  geom_col(fill=I("brown")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  xlab("State Abbreviation") +
+  ylab("Count of Peets Locations")
+PeetsPlot
+
+# Panera Plot
+PaneraPlot <- ggplot(NewDF, aes(x=State_Abbreviation,y=Panera_LocationCount)) +
+  geom_col(fill=I("darkseagreen")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  xlab("State Abbreviation") +
+  ylab("Count of Panera Locations")
+PaneraPlot
+
+# McDonalds Plot
+McDonaldsPlot <- ggplot(NewDF, aes(x=State_Abbreviation,y=McDonalds_LocationCount)) +
+  geom_col(fill=I("darkgoldenrod2")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  xlab("State Abbreviation") +
+  ylab("Count of McDonalds Locations")
+McDonaldsPlot
+
+# Coffee Bean & Tea Leaf Plot
+CoffeeBTLeafPlot <- ggplot(NewDF, aes(x=State_Abbreviation,y=CoffeeBTLeaf_LocationCount)) +
+  geom_col(fill=I("chocolate4")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  xlab("State Abbreviation") +
+  ylab("Count of Coffee Bean & Tea Leaf Locations")
+CoffeeBTLeafPlot
+
+# Caribou Coffee Plot
+CaribouPlot <- ggplot(NewDF, aes(x=State_Abbreviation,y=Caribou_LocationCount)) +
+  geom_col(fill=I("deepskyblue1")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  xlab("State Abbreviation") +
+  ylab("Count of Caribou Coffee Locations")
+CaribouPlot
+
+# Au Bon Pain Plot
+AuBonPainPlot <- ggplot(NewDF, aes(x=State_Abbreviation,y=AuBonPain_LocationCount)) +
+  geom_col(fill=I("navy")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  xlab("State Abbreviation") +
+  ylab("Count of Au Bon Pain Locations")
+AuBonPainPlot
+
+
+# Regional Population 
+PopulationPlot2 <- ggplot(Population, aes(x=Region,y=Population)) +
+  geom_col() +
+  xlab("Region") +
+  labs(title= "Population by U.S. Region")+
+  theme(plot.title = element_text(hjust = 0.5))
+
+PopulationPlot2
+
+
+# Starbucks Regional Population Plot
+StarbucksPlot2 <- ggplot(NewDF, aes(x=Region,y=Starbucks_LocationCount)) +
+  geom_col() +
+  xlab("Region") +
+  labs(title= "Starbucks Locations by U.S. Region")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  ylab("Count of Starbucks Locations")
+
+StarbucksPlot2
+
+StarbucksPlot2+PopulationPlot2+plot_layout(ncol=1)
+```
+
+  * **Do the financial data match what you’d expect based on the number and locations of the stores? Why or why not?**
+
+I anticipated Starbucks and McDonalds to have larger revenue values due to their high numbers of stores in a variety of states. However, I expected the value of Peet's Coffee to be larger. It was when I looked at the above graph showing the state location distribution of Peet's Coffee that I realized that the chain is predominantly and overwhelmingly located in California. Thus, the prevalence of Peet's Coffees in California is not reflected in other states, explaining the lower than expected revenues for this chain.
+
+```{r}
+
+NewDFPivoted <- NewDF %>%
+  pivot_longer(AuBonPain_Revenue:Starbucks_Revenue,
+               names_to= "Chain", values_to= "Yearly_Revenue") %>%
+  distinct(Chain,Yearly_Revenue)
+
+
+# Revenue Difference by State 
+NewDFPivoted %>%
+  ggplot(aes(x=Chain,y=Yearly_Revenue)) +
+  geom_col(fill=I("black"))+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  ylab("Yearly Revenue (in Billions)")+
+  xlab("Chain Name")+
+  labs(title= "Yearly Revenue by Chain")+
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+* **Are some of these chains more prevalent in certain states than others? Possibly despite having less stores overall? Same questions for regions instead of states.**
+
+I decided to look further if Peet's coffee was more prevalent in the Western region, or if its popularity was limited to just California. The below graph shows that Peet's Coffee has a very strong majority of its locations in the West region. I next analyzed  other chains with low store location amounts: The Coffee Bean & Tea Leaf, Caribou Coffee, and Au Bon Pain. The Coffee Bean & Tea Leaf locations are heavily concentrated in the West Region, Caribou Coffee locations are heavily concentrated in the Midwest, and Au Bon Pain locations are moderately concentrated in the northeast. In looking at the graphs from the first part of question #7, it appears that the chains with locations in less states have more skewed distributions. Simply put, states with less locations tend to have a greater proporiton of their location concentrated in one, or a few states.
+
+
+```{r,warning=FALSE}
+PeetsPlot2 <- ggplot(NewDF, aes(x=Region,y=Peets_LocationCount)) +
+  geom_col(fill=I("brown")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  xlab("Region") +
+  ylab("Count of Peets Locations")+
+  labs(title= "Peet's Locations by Region")+
+  theme(plot.title = element_text(hjust = 0.5))
+PeetsPlot2
+
+CoffeeBTLeafPlot2 <- ggplot(NewDF, aes(x=Region,y=CoffeeBTLeaf_LocationCount)) +
+  geom_col(fill=I("chocolate4")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  xlab("Region") +
+  ylab("Count of Coffee, Bean, and Tea Leaf Locations")+
+  labs(title= "Coffee, Bean, and Tea Leaf's Locations by Region")+
+  theme(plot.title = element_text(hjust = 0.5))
+CoffeeBTLeafPlot2
+
+CaribouPlot2 <- ggplot(NewDF, aes(x=Region,y=Caribou_LocationCount)) +
+  geom_col(fill=I("deepskyblue1")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  xlab("Region") +
+  ylab("Count of Caribou Coffee Locations")+
+  labs(title= "Caribou Coffee's Locations by Region")+
+  theme(plot.title = element_text(hjust = 0.5))
+CaribouPlot2
+
+AuBonPainPlot2 <- ggplot(NewDF, aes(x=Region,y=AuBonPain_LocationCount)) +
+  geom_col(fill=I("navy")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  xlab("Region") +
+  ylab("Count of Au Bon Pain Locations")+
+  labs(title= "Au Bon Pain's Locations by Region")+
+  theme(plot.title = element_text(hjust = 0.5))
+AuBonPainPlot2
+```
+

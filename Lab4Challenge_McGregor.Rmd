@@ -1,0 +1,62 @@
+---
+title: 'Lab #4 Challenge'
+author: "Jen McGregor"
+date: "10/15/2021"
+output:
+  prettydoc::html_pretty:
+  theme: hpstr
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(rvest)
+library(tidyverse)
+library(readr)
+```
+
+# Challenge
+
+**Convert your code for Exercises 1-3 above to a function that takes a single argument: the menuism URL. This function should:**
+
+  * Scrape the information on state names and corresponding number of store locations on the webpage specified
+
+  * Extract the name of the company from either the URL specified or the webpage
+
+  * Return a clean, organized dataset that has three columns: state abbreviation, location count, company name. Company name will likely be repeated on every row.
+
+```{r}
+#CCreate the Function
+
+ChallengeDF <- function(URL){
+  StoreURL <- URL
+  StoreLink <- read_html(StoreURL)
+  StoreHTML <- html_nodes(StoreLink,css= ".list-unstyled-links a")
+  StoreText <- html_text(StoreHTML)
+  StoreDF <- data.frame(
+  State = StoreText[seq(from=1,to=100,by=1)]
+  )
+  StoreDF$State <- gsub("\\(","",StoreDF$State)
+  StoreDF$State <- gsub("\\)","",StoreDF$State)
+  StoreDF$CompanyName <- gsub("locations [0-9]+","",StoreDF$State)
+  StoreDF$CompanyName <- gsub("^\\w*\\s*","",StoreDF$CompanyName)
+  StoreDF$LocationCount <- parse_number(StoreDF$State)
+  StoreDF$State <- gsub(" .*","",StoreDF$State)
+  stateabb <- function(x){
+  state.abb[match(x,state.name)] 
+  }
+  StoreDF$State_Abbreviation <- stateabb(StoreDF$State)
+  StoreDF <- StoreDF[complete.cases(StoreDF),]
+  return(StoreDF[-1])
+}
+
+#Test the Function on some of the URLs from Lab #4 
+Starbucks<- ChallengeDF("https://www.menuism.com/restaurant-locations/starbucks-coffee-39564")
+Starbucks
+
+Dunkin <- ChallengeDF("https://www.menuism.com/restaurant-locations/dunkin-donuts-181624")
+Dunkin
+
+Peets <- ChallengeDF("https://www.menuism.com/restaurant-locations/peets-coffee-tea-84051")
+Peets
+```
